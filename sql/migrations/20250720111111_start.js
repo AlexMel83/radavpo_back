@@ -143,6 +143,7 @@ export const down = async (knex) => {
     await trx.schema.dropTableIfExists('hashtags');
     await trx.schema.dropTableIfExists('comments');
     await trx.schema.dropTableIfExists('favorite_posts');
+    await trx.schema.dropTableIfExists('post_images');
     await trx.schema.dropTableIfExists('posts'); // Удаляем после зависимых таблиц
     await trx.schema.dropTableIfExists('partners');
     await trx.schema.dropTableIfExists('tokens');
