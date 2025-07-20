@@ -9,6 +9,7 @@ const postsFields = [
   'posts.title',
   'posts.excerpt',
   'posts.content',
+  'posts.images',
   'posts.tags',
   'posts.category',
   'posts.source_type',
@@ -20,14 +21,6 @@ const postsFields = [
   'posts.user_id',
   'posts.created_at as post_created_at',
   'posts.updated_at as post_updated_at',
-];
-const postPhotosFields = [
-  'pi.id as image_id',
-  'pi.post_id',
-  'pi.url',
-  'pi.description as image_description',
-  'pi.created_at as image_created_at',
-  'pi.updated_at as image_updated_at',
 ];
 
 const conditionHandlers = {
@@ -54,25 +47,34 @@ export default {
       sort = condition.sortDirection;
       delete condition.sortDirection;
     }
+
     try {
       const postsQuery = trx(postsTable)
         .select([
           ...postsFields,
           knex.raw('ST_AsEWKT(location) as location'),
-          ...postPhotosFields,
           knex.raw('array_agg(h.name) as hashtags'),
         ])
-        .leftJoin('post_images as pi', 'pi.post_id', 'posts.id')
         .leftJoin(`${postHashtagsTable} as ph`, 'ph.post_id', 'posts.id')
         .leftJoin(`${hashtagsTable} as h`, 'h.id', 'ph.hashtag_id')
         .groupBy([
           'posts.id',
-          'pi.id',
-          'pi.post_id',
-          'pi.url',
-          'pi.description',
-          'pi.created_at',
-          'pi.updated_at',
+          'posts.slug',
+          'posts.title',
+          'posts.excerpt',
+          'posts.content',
+          'posts.images',
+          'posts.tags',
+          'posts.category',
+          'posts.source_type',
+          'posts.source_url',
+          'posts.address',
+          'posts.location',
+          'posts.formatted_address',
+          'posts.published',
+          'posts.user_id',
+          'posts.created_at',
+          'posts.updated_at',
         ]);
 
       for (const [key, value] of Object.entries(condition)) {
@@ -85,48 +87,27 @@ export default {
       }
 
       const result = await postsQuery;
-      if (!result.length) {
-        return null;
-      }
-      const groupedResult = result.reduce((acc, row) => {
-        const postIndex = acc.findIndex((post) => post.id === row.id);
 
-        const image = {
-          id: row.image_id,
-          url: row.url,
-          description: row.image_description,
-          created_at: row.image_created_at,
-          updated_at: row.image_updated_at,
-        };
+      if (!result.length) return null;
 
-        if (postIndex === -1) {
-          acc.push({
-            id: row.id,
-            source_type: row.source_type,
-            source_url: row.source_url,
-            title: row.title,
-            slug: row.slug,
-            excerpt: row.excerpt,
-            content: row.content,
-            address: row.address,
-            location: row.location,
-            formatted_address: row.formatted_address,
-            published: row.published,
-            user_id: row.user_id,
-            created_at: row.post_created_at,
-            updated_at: row.post_updated_at,
-            post_images: row.image_id ? [image] : [],
-            hashtags: row.hashtags ? row.hashtags.filter(Boolean) : [],
-          });
-        } else {
-          if (row.image_id) {
-            acc[postIndex].post_images.push(image);
-          }
-        }
-
-        return acc;
-      }, []);
-      return groupedResult;
+      return result.map((row) => ({
+        id: row.id,
+        source_type: row.source_type,
+        source_url: row.source_url,
+        title: row.title,
+        slug: row.slug,
+        excerpt: row.excerpt,
+        content: row.content,
+        images: row.images,
+        address: row.address,
+        location: row.location,
+        formatted_address: row.formatted_address,
+        published: row.published,
+        user_id: row.user_id,
+        created_at: row.post_created_at,
+        updated_at: row.post_updated_at,
+        hashtags: row.hashtags?.filter(Boolean) || [],
+      }));
     } catch (error) {
       console.error('Error fetching posts by condition:', error.message);
       throw error;

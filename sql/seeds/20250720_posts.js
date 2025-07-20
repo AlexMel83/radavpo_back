@@ -5,7 +5,6 @@
 export const seed = async (knex) => {
   // Спочатку видаляємо старі дані (залежності потрібно дропати в правильному порядку)
   await knex('post_hashtags').del();
-  await knex('post_images').del();
   await knex('posts').del();
   await knex('hashtags').del();
 
@@ -14,7 +13,7 @@ export const seed = async (knex) => {
       id: '5',
       slug: 'rehome-help-find-housing-for-idps',
       title: 'ReHome — Допоможемо знайти житло для ВПО',
-      images: 'rehome-ezgif.com-optijpeg.jpg',
+      images: ['rehome-ezgif.com-optijpeg.jpg'],
       tags: ['ВПО', 'молодь', 'ТОТ'],
       category: 'житло',
       excerpt:
@@ -46,7 +45,7 @@ export const seed = async (knex) => {
       id: 3,
       slug: 'vpo-from-legal-advice-to-empowerment',
       title: 'Ради ВПО: від адаптації до впливу',
-      images: 'diaosvita-radivpo.webp',
+      images: ['diaosvita-radivpo.webp'],
       tags: ['ВПО', 'освіта', 'права'],
       category: 'ВПО',
       excerpt:
@@ -75,7 +74,7 @@ export const seed = async (knex) => {
   ];
 
   for (const post of postsData) {
-    const { images, tags, createdAt, ...postData } = post;
+    const { tags, createdAt, ...postData } = post;
 
     // Вставка публікації
     const [postId] = await knex('posts')
@@ -86,16 +85,6 @@ export const seed = async (knex) => {
         published: true,
       })
       .returning('id');
-
-    // Якщо є зображення — додаємо
-    if (images) {
-      await knex('post_images').insert({
-        post_id: postId.id || postId, // залежить від конфігурації Knex
-        url: `/uploads/posts/${images}`,
-        created_at: createdAt,
-        updated_at: createdAt,
-      });
-    }
 
     // Якщо є теги — додаємо
     if (tags && Array.isArray(tags)) {

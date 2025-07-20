@@ -43,6 +43,7 @@ export const up = async (knex) => {
       table.string('title').notNullable();
       table.string('excerpt').nullable();
       table.text('content').nullable();
+      table.specificType('images', 'text[]').nullable();
       table.string('tags').nullable();
       table.string('category').nullable();
       table.string('source_type', 100).nullable();
@@ -52,15 +53,6 @@ export const up = async (knex) => {
       table.string('formatted_address').nullable();
       table.boolean('published').defaultTo(false).notNullable();
       table.integer('user_id').nullable();
-      table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
-      table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
-    });
-    await trx.schema.createTable('post_images', (table) => {
-      table.increments('id').primary().notNullable();
-      table.integer('post_id').notNullable();
-      table.foreign('post_id').references('posts.id').onDelete('CASCADE');
-      table.string('url', 255).notNullable();
-      table.text('description').nullable();
       table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
       table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
     });
@@ -149,7 +141,6 @@ export const down = async (knex) => {
   try {
     await trx.schema.dropTableIfExists('post_hashtags');
     await trx.schema.dropTableIfExists('hashtags');
-    await trx.schema.dropTableIfExists('post_images');
     await trx.schema.dropTableIfExists('comments');
     await trx.schema.dropTableIfExists('favorite_posts');
     await trx.schema.dropTableIfExists('posts'); // Удаляем после зависимых таблиц
