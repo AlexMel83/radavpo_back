@@ -1,0 +1,8 @@
+/node_modules
+/.vscode
+/pgdata
+/uploads
+/sql/seeds/0_users.js
+.env
+.development.env
+.production.env
