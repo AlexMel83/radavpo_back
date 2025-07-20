@@ -93,15 +93,20 @@ export const up = async (knex) => {
     });
     await trx.schema.createTable('partners', (table) => {
       table.increments('id').primary().notNullable();
-      table.integer('user_id').notNullable();
-      table.string('title', 100).nullable();
-      table.string('slug', 100).notNullable().unique();
-      table.string('excerpt', 100).nullable();
+      table.integer('user_id').nullable();
+      table.string('title', 255).nullable();
+      table.string('slug', 255).notNullable().unique();
+      table.string('excerpt', 500).nullable();
       table.text('content').nullable();
-      table.string('address').nullable();
+      table.string('category', 100).nullable();
+      table.json('contacts').nullable();
+      table.string('url', 255).nullable();
+      table.specificType('tags', 'text[]').nullable();
+      table.specificType('images', 'text[]').nullable();
+      table.string('address', 255).nullable();
       table.specificType('location', 'geography(POINT, 4326)').nullable();
       table.string('formatted_address').nullable();
-      table.boolean('published').defaultTo(false).notNullable();
+      table.boolean('published').defaultTo(true).notNullable();
       table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
       table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
     });
