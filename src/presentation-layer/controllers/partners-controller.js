@@ -3,9 +3,15 @@ import partnersModel from '../../data-layer/models/partners-model.js';
 
 const queryMappings = {
   id: 'id',
-  slug: 'slug',
   user_id: 'user_id',
+  slug: 'slug',
   title: 'title',
+  images: 'images',
+  tags: 'tags',
+  category: 'category',
+  url: 'url',
+  contacts: 'contacts',
+  excerpt: 'excerpt',
   content: 'content',
   sortField: 'sort_field',
   sortDirection: 'sortDirection',
