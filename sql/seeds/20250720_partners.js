@@ -15,7 +15,7 @@ export const seed = async function (knex) {
       images: ['logo-centr-recovery.jpg'],
       tags: ['Благодійність', 'Реабілітація', 'Відновлення'],
       category: 'Благодійність',
-      url: 'https://cfhope.in.ua',
+      url: 'https://www.rehabilitation-recovery-center.org.ua/',
       excerpt: 'Наша мета – щоб кожна людина стала духовно цілісною!',
       content: `<div class="">
         <h1>Центр реабілітації та відновлення:</h1>
