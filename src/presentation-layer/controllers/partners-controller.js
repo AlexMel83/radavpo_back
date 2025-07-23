@@ -13,8 +13,15 @@ const queryMappings = {
   contacts: 'contacts',
   excerpt: 'excerpt',
   content: 'content',
+  status: 'status',
   sortField: 'sort_field',
   sortDirection: 'sortDirection',
+  prev_id: 'prev_id',
+  prev_slug: 'prev_slug',
+  next_id: 'next_id',
+  next_slug: 'next_slug',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
 };
 
 class PartnersController {
@@ -32,6 +39,7 @@ class PartnersController {
       if (!response) {
         return res.json(ApiError.NotFound('Partners not found'));
       }
+
       return res.json(response);
     } catch (error) {
       console.error(error);

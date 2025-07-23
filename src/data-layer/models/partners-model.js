@@ -16,23 +16,30 @@ const partnersFields = [
   'partners.images',
   'partners.tags',
   'partners.contacts',
-  'partners.published',
+  'partners.status',
   'partners.created_at',
   'partners.updated_at',
 ];
 
 const conditionHandlers = {
-  id: (partnersQuery, value) => partnersQuery.where('partners.id', value),
-  slug: (partnersQuery, value) => partnersQuery.where('partners.slug', value),
+  id: (partnersQuery, value) =>
+    partnersQuery.where('published_partners.id', value),
+  slug: (partnersQuery, value) =>
+    partnersQuery.where('published_partners.slug', value),
   user_id: (partnersQuery, value) =>
-    partnersQuery.where('partners.user_id', value),
+    partnersQuery.where('published_partners.user_id', value),
   title: (partnersQuery, value) =>
-    partnersQuery.where('partners.title', 'ilike', `%${value}%`),
+    partnersQuery.where('published_partners.title', 'ilike', `%${value}%`),
   content: (partnersQuery, value) =>
-    partnersQuery.where('partners.content', 'ilike', `%${value}%`),
+    partnersQuery.where('published_partners.content', 'ilike', `%${value}%`),
+  status: (partnersQuery, value) =>
+    partnersQuery.where('published_partners.status', value),
   sort_field: (partnersQuery, value, sort) => {
     if (value) {
-      partnersQuery.orderBy(value, sort === 'down' ? 'desc' : 'asc');
+      partnersQuery.orderBy(
+        `published_partners.${value}`,
+        sort === 'down' ? 'desc' : 'asc',
+      );
     }
   },
 };
@@ -40,25 +47,55 @@ const conditionHandlers = {
 export default {
   async getPartnersByCondition(condition = {}, trx = knex) {
     let sort;
+    let limit = condition.limit || 10;
+    let offset = condition.offset || 0;
     if ('sortDirection' in condition) {
       sort = condition.sortDirection;
       delete condition.sortDirection;
     }
+    if ('limit' in condition) {
+      limit = condition.limit;
+      delete condition.limit;
+    }
+    if ('offset' in condition) {
+      offset = condition.offset;
+      delete condition.offset;
+    }
     try {
-      const partnersQuery = trx(partnersTable).select(partnersFields);
+      const partnersQuery = trx
+        .with('published_partners', (qb) => {
+          qb.select([
+            ...partnersFields,
+            knex.raw('LAG(partners.id) OVER (ORDER BY partners.id) as prev_id'),
+            knex.raw(
+              'LAG(partners.slug) OVER (ORDER BY partners.id) as prev_slug',
+            ),
+            knex.raw(
+              'LEAD(partners.id) OVER (ORDER BY partners.id) as next_id',
+            ),
+            knex.raw(
+              'LEAD(partners.slug) OVER (ORDER BY partners.id) as next_slug',
+            ),
+          ])
+            .from(partnersTable)
+            .where('partners.status', 'published');
+        })
+        .select('*')
+        .from('published_partners');
 
+      // Застосовуємо умови до CTE published_partners
       for (const [key, value] of Object.entries(condition)) {
         const handler = conditionHandlers[key];
         if (handler) {
           handler(partnersQuery, value, sort);
         } else {
-          partnersQuery.where(key, value);
+          partnersQuery.where(`published_partners.${key}`, value);
         }
       }
 
       const result = await partnersQuery;
       if (!result.length) {
-        return null;
+        return { data: [] };
       }
 
       return result;

@@ -84,10 +84,10 @@ export const up = async (knex) => {
       table.foreign('user_id').references('users.id').onDelete('CASCADE');
     });
     await trx.schema.createTable('partners', (table) => {
-      table.increments('id').primary().notNullable();
+      table.increments('id').primary().notNullable().index();
       table.integer('user_id').nullable();
       table.string('title', 255).nullable();
-      table.string('slug', 255).notNullable().unique();
+      table.string('slug', 255).notNullable().unique().index();
       table.string('excerpt', 500).nullable();
       table.text('content').nullable();
       table.string('category', 100).nullable();
@@ -98,8 +98,16 @@ export const up = async (knex) => {
       table.string('address', 255).nullable();
       table.specificType('location', 'geography(POINT, 4326)').nullable();
       table.string('formatted_address').nullable();
-      table.boolean('published').defaultTo(true).notNullable();
-      table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
+      table
+        .enu('status', ['draft', 'published', 'archived'])
+        .defaultTo('published')
+        .notNullable()
+        .index();
+      table
+        .timestamp('created_at')
+        .defaultTo(knex.fn.now())
+        .notNullable()
+        .index();
       table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
     });
     await trx.schema.createTable('hashtags', (table) => {
