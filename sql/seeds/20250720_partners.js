@@ -10,7 +10,7 @@ export const seed = async function (knex) {
   const partners = [
     {
       id: 2,
-      slug: 'ngo-rehabilitation-and-recovery-center"',
+      slug: 'ngo-rehabilitation-and-recovery-center',
       title: 'Громадська організація «Центр реабілітації та відновлення»',
       images: ['logo-centr-recovery.jpg'],
       tags: ['Благодійність', 'Реабілітація', 'Відновлення'],
