@@ -1,5 +1,4 @@
 import validateMiddleware from '../../middlewares/validate-middleware.js';
-// import authMiddleware from '../../middlewares/auth-middleware.js';
 import postsController from '../controllers/posts-controller.js';
 import { query } from 'express-validator';
 
@@ -34,6 +33,16 @@ const validateQueryPost = [
     .optional({ checkFalsy: true })
     .isInt({ min: 0 })
     .withMessage('offset must be a non-negative integer'),
+  query('sort_field')
+    .optional({ checkFalsy: true })
+    .isIn(['id', 'created_at', 'updated_at', 'title'])
+    .withMessage(
+      'sort_field must be one of: id, created_at, updated_at, title',
+    ),
+  query('sortDirection')
+    .optional({ checkFalsy: true })
+    .isIn(['asc', 'desc'])
+    .withMessage('sortDirection must be either asc or desc'),
 ];
 
 export default function (app) {

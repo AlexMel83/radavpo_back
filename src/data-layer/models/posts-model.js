@@ -29,17 +29,21 @@ const conditionHandlers = {
   user_id: (postsQuery, value) =>
     postsQuery.where('published_posts.user_id', value),
   title: (postsQuery, value) =>
-    postsQuery.where('published_posts.title', 'ilike', `%${value}%`),
+    postsQuery.where('published_posts.title', 'ilike', `%${value}% `),
   content: (postsQuery, value) =>
     postsQuery.where('published_posts.content', 'ilike', `%${value}%`),
   status: (postsQuery, value) =>
     postsQuery.where('published_posts.status', value),
   sort_field: (postsQuery, value, sort) => {
     if (value) {
-      postsQuery.orderBy(
-        `published_posts.${value}`,
-        sort === 'down' ? 'desc' : 'asc',
-      );
+      const column = value === 'created_at' ? 'post_created_at' : value;
+      postsQuery.orderBy([
+        {
+          column: `published_posts.${column}`,
+          order: sort === 'desc' ? 'desc' : 'asc',
+        },
+        { column: 'published_posts.id', order: 'desc' }, // Вторичная сортировка по id
+      ]);
     }
   },
 };
@@ -47,18 +51,18 @@ const conditionHandlers = {
 export default {
   async getPostsByCondition(condition = {}, trx = knex) {
     let sort;
-    let limit = condition.limit || 10;
-    let offset = condition.offset || 0;
+    let limit = parseInt(condition.limit, 10) || 10;
+    let offset = parseInt(condition.offset, 10) || 0;
     if ('sortDirection' in condition) {
       sort = condition.sortDirection;
       delete condition.sortDirection;
     }
     if ('limit' in condition) {
-      limit = condition.limit;
+      limit = parseInt(condition.limit, 10) || 10;
       delete condition.limit;
     }
     if ('offset' in condition) {
-      offset = condition.offset;
+      offset = parseInt(condition.offset, 10) || 0;
       delete condition.offset;
     }
 
@@ -100,6 +104,9 @@ export default {
           knex.raw(
             'array_agg(h.name) FILTER (WHERE h.name IS NOT NULL) as hashtags',
           ),
+          knex.raw(
+            "(SELECT COUNT(*) FROM posts WHERE posts.status = 'published') as total_count",
+          ),
         ])
         .from('published_posts')
         .leftJoin(
@@ -134,7 +141,6 @@ export default {
         .limit(limit)
         .offset(offset);
 
-      // Застосовуємо умови до CTE published_posts
       for (const [key, value] of Object.entries(condition)) {
         const handler = conditionHandlers[key];
         if (handler) {
@@ -147,10 +153,10 @@ export default {
       const result = await postsQuery;
 
       if (!result.length) {
-        return { data: [] };
+        return { data: [], total_count: 0 };
       }
 
-      return result.map((row) => ({
+      const data = result.map((row) => ({
         id: row.id,
         source_type: row.source_type,
         source_url: row.source_url,
@@ -172,6 +178,11 @@ export default {
         next_id: row.next_id,
         next_slug: row.next_slug,
       }));
+
+      return {
+        data,
+        total_count: parseInt(result[0].total_count, 10) || 0,
+      };
     } catch (error) {
       console.error('Error fetching posts by condition:', error.message);
       console.error('Full error:', JSON.stringify(error, null, 2));

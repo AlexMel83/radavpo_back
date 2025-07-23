@@ -9,10 +9,10 @@ const queryMappings = {
   sourceUrl: 'source_url',
   title: 'title',
   content: 'content',
-  sortField: 'sort_field',
+  sort_field: 'sort_field', // Исправлено с sortField на sort_field
   sortDirection: 'sortDirection',
-  limit: 'limit', // Додано
-  offset: 'offset', // Додано
+  limit: 'limit',
+  offset: 'offset',
 };
 
 class postsController {
@@ -23,7 +23,6 @@ class postsController {
       for (const key in queryParams) {
         const mappedKey = queryMappings[key];
         if (mappedKey) {
-          // Перетворюємо limit і offset у числа
           conditions[mappedKey] = ['limit', 'offset'].includes(mappedKey)
             ? parseInt(queryParams[key], 10)
             : queryParams[key];
