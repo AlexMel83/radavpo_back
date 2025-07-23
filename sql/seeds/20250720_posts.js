@@ -82,7 +82,7 @@ export const seed = async (knex) => {
         ...postData,
         created_at: createdAt,
         updated_at: createdAt,
-        published: true,
+        status: 'published',
       })
       .returning('id');
 

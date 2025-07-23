@@ -38,8 +38,8 @@ export const up = async (knex) => {
     });
 
     await trx.schema.createTable('posts', (table) => {
-      table.increments('id').primary().notNullable();
-      table.string('slug').nullable();
+      table.increments('id').primary().notNullable().index();
+      table.string('slug').notNullable().unique().index();
       table.string('title').notNullable();
       table.string('excerpt').nullable();
       table.text('content').nullable();
@@ -51,9 +51,17 @@ export const up = async (knex) => {
       table.string('address').nullable();
       table.specificType('location', 'geography(POINT, 4326)').nullable();
       table.string('formatted_address').nullable();
-      table.boolean('published').defaultTo(false).notNullable();
+      table
+        .enu('status', ['draft', 'published', 'archived'])
+        .defaultTo('published')
+        .notNullable()
+        .index();
       table.integer('user_id').nullable();
-      table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
+      table
+        .timestamp('created_at')
+        .defaultTo(knex.fn.now())
+        .notNullable()
+        .index();
       table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
     });
     await knex.schema.createTable('favorite_posts', (table) => {
