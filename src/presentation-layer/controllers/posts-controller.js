@@ -11,6 +11,8 @@ const queryMappings = {
   content: 'content',
   sortField: 'sort_field',
   sortDirection: 'sortDirection',
+  limit: 'limit', // Додано
+  offset: 'offset', // Додано
 };
 
 class postsController {
@@ -21,7 +23,10 @@ class postsController {
       for (const key in queryParams) {
         const mappedKey = queryMappings[key];
         if (mappedKey) {
-          conditions[mappedKey] = queryParams[key];
+          // Перетворюємо limit і offset у числа
+          conditions[mappedKey] = ['limit', 'offset'].includes(mappedKey)
+            ? parseInt(queryParams[key], 10)
+            : queryParams[key];
         }
       }
       const response = await postsModel.getPostsByCondition(conditions);
@@ -30,7 +35,8 @@ class postsController {
       }
       return res.json(response);
     } catch (error) {
-      console.error(error);
+      console.error('Error in getPosts:', error.message);
+      console.error('Full error:', JSON.stringify(error, null, 2));
       return res.json(ApiError.IntServError(error.message));
     }
   }
@@ -44,7 +50,8 @@ class postsController {
       }
       return res.json(response);
     } catch (error) {
-      console.error(error);
+      console.error('Error in createPost:', error.message);
+      console.error('Full error:', JSON.stringify(error, null, 2));
       return res.json(ApiError.IntServError(error.message));
     }
   }

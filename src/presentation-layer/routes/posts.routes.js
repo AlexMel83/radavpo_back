@@ -26,6 +26,14 @@ const validateQueryPost = [
     .optional({ checkFalsy: true })
     .isString()
     .withMessage('content is string'),
+  query('limit')
+    .optional({ checkFalsy: true })
+    .isInt({ min: 1 })
+    .withMessage('limit must be a positive integer'),
+  query('offset')
+    .optional({ checkFalsy: true })
+    .isInt({ min: 0 })
+    .withMessage('offset must be a non-negative integer'),
 ];
 
 export default function (app) {
