@@ -41,7 +41,7 @@ export const up = async (knex) => {
       table.increments('id').primary().notNullable().index();
       table.string('slug').notNullable().unique().index();
       table.string('title').notNullable();
-      table.string('excerpt').nullable();
+      table.text('excerpt').nullable();
       table.text('content').nullable();
       table.specificType('images', 'text[]').nullable();
       table.string('tags').nullable();
